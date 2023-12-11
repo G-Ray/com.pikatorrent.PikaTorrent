@@ -2,6 +2,10 @@ app-id: com.pikatorrent.PikaTorrent
 runtime: org.freedesktop.Platform
 runtime-version: '22.08'
 sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.node18
+build-options:
+  append-path: /usr/lib/sdk/node18/bin
 base: org.electronjs.Electron2.BaseApp
 base-version: '22.08'
 command: run.sh
@@ -16,26 +20,42 @@ cleanup:
 modules:
   - name: pikatorrent
     buildsystem: simple
+    build-options:
+      env:
+        XDG_CACHE_HOME: /run/build/electron-sample-app/flatpak-node/cache
+        npm_config_cache: /run/build/electron-sample-app/flatpak-node/npm-cache
+        npm_config_offline: 'true'
+    # subdir: pikatorrent
     build-commands:
+      # Install npm dependencies
+      - npm install --offline
+      - npm run build:desktop
+      - 
       # Copy
-      - mv pikatorrent/* /app/
+      # - mv pikatorrent/* /app/
       # Install app wrapper
       - install -Dm755 -t /app/bin/ ./run.sh
-    post-install:
-      - install -Dm644 pikatorrent.desktop /app/share/applications/com.pikatorrent.PikaTorrent.desktop
-      - install -Dm644 pikatorrent.metainfo.xml /app/share/metainfo/com.pikatorrent.PikaTorrent.metainfo.xml
-      - install -Dm644 /app/resources/app/assets/icon.png ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/${FLATPAK_ID}.png
+    # post-install:
+      # - install -Dm644 pikatorrent.desktop /app/share/applications/com.pikatorrent.PikaTorrent.desktop
+      # - install -Dm644 pikatorrent.metainfo.xml /app/share/metainfo/com.pikatorrent.PikaTorrent.metainfo.xml
+      # - install -Dm644 /app/resources/app/assets/icon.png ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/${FLATPAK_ID}.png
     sources:
-      - type: archive
-        url: https://github.com/G-Ray/pikatorrent/releases/download/v0.8.2/pikatorrent-linux-x64-0.8.2.zip
-        sha256: af5d22ac67a0e6db4a9ab5480d3c180498c447a4dd8e51a8d6c0d6b3768ef0ef
-        dest: pikatorrent
-      - type: file
-        url: https://raw.githubusercontent.com/G-Ray/pikatorrent/e4b3e875243327186282b076494bf0e4df64e2d2/apps/desktop/assets/linux/pikatorrent.desktop
-        sha256: 5dd067f648b231fd2afb879b85060675328b80e4e772055da032bb75f8ce3d28
-      - type: file
-        url: https://raw.githubusercontent.com/G-Ray/pikatorrent/cf3cd3c5141d8e0601a347e1c26861d55207198b/apps/desktop/assets/linux/pikatorrent.metainfo.xml
-        sha256: ec1c7017e604f056e8ae37071299178e4405f7bf0e24fa96fa2da2de602fabc9
+      # - type: archive
+      #   url: https://github.com/G-Ray/pikatorrent/releases/download/v0.8.2/pikatorrent-linux-x64-0.8.2.zip
+      #   sha256: af5d22ac67a0e6db4a9ab5480d3c180498c447a4dd8e51a8d6c0d6b3768ef0ef
+      #   dest: pikatorrent
+      
+      - type: git
+        url: https://github.com/G-Ray/pikatorrent.git
+        commit: 32a534c8fe4fc95846a87e0409ddc38106a4399f
+        # dest: pikatorrent
+      # - type: file
+      #   url: https://raw.githubusercontent.com/G-Ray/pikatorrent/e4b3e875243327186282b076494bf0e4df64e2d2/apps/desktop/assets/linux/pikatorrent.desktop
+      #   sha256: 5dd067f648b231fd2afb879b85060675328b80e4e772055da032bb75f8ce3d28
+      # - type: file
+      #   url: https://raw.githubusercontent.com/G-Ray/pikatorrent/cf3cd3c5141d8e0601a347e1c26861d55207198b/apps/desktop/assets/linux/pikatorrent.metainfo.xml
+      #   sha256: ec1c7017e604f056e8ae37071299178e4405f7bf0e24fa96fa2da2de602fabc9
+      - generated-sources.json
       # Wrapper to launch the app
       - type: script
         dest-filename: run.sh
